@@ -10,17 +10,21 @@ knitr::opts_chunk$set(
 
 How do you get the R package `googlesheets4` to work inside a non-interactive GitHub Actions environment?
 
+You need to give your workflow permission. Easier said than done!
+
+Everything associated with this tutorial can be found at [avahoffman/GHA_and_googlesheets](https://github.com/avahoffman/GHA_and_googlesheets).
+
 ## Step 1: Make a service account
 
 1. Go to [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials). 
 
-- If you're using a specific Gmail account to manage Google Cloud, make sure you're logged in.
-- If your browser doesn't redirect you to something like "https://console.cloud.google.com/apis/credentials?project=my-project", you might need to make one first. You can make a limited number of projects for free.
+    - If you're using a specific Gmail account to manage Google Cloud, make sure you're logged in.
+    - If your browser doesn't redirect you to something like "https://console.cloud.google.com/apis/credentials?project=my-project", you might need to make a project first. You can make a limited number of projects for free.
 
 2. Click on "CREATE CREDENTIALS" and select "Service account".
 
-- A service account is a special kind of account typically used by an application, rather than a person.
-- **Caution:** Service account keys are a security risk if not managed correctly!
+    - A service account is a special kind of account typically used by an application, rather than a person.
+    - **Caution:** Service account keys are a security risk if not managed correctly!
 
 ```{r}
 knitr::include_graphics("img/create_creds.png")
@@ -34,7 +38,7 @@ knitr::include_graphics("img/service_acct_name.png")
 
 4. Leave "Grant this service account access to project" and "Grant users access to this service account" as is by clicking "CONTINUE" and "DONE"
 
-- You will be taken back to the credentials page. You'll see your new service account that you created, and an email that looks something like "program-survey-2024@my-project.iam.gserviceaccount.com".
+    - You will be taken back to the credentials page. You'll see your new service account that you created, and an email that looks something like "program-survey-2024@my-project.iam.gserviceaccount.com".
 
 ```{r}
 knitr::include_graphics("img/service_acct_done.png")
@@ -70,13 +74,13 @@ knitr::include_graphics("img/gha_new_secret.png")
 
 5. Repeat the process. Fill in the name: `GS_SA_KEY`. Type in the contents of the key you downloaded exactly. 
 
-- You might have to open the key in a plain text application. If you open it in your browser, it might not be formatted correctly.
-- The key will start with:
+    - You might have to open the key in a plain text application (e.g., TextEdit, Sublime Text). If you open it in your browser, it might not be formatted correctly.
+    - The key will start with:
 
-    ```
-    {
-      "type": "service_account",`
-    ```
+        ```
+        {
+          "type": "service_account",`
+        ```
 
 6. Click "Add secret". Your secrets are now ready to use.
 
@@ -88,10 +92,10 @@ knitr::include_graphics("img/gha_the_secrets.png")
 
 1. Create a GHA workflow that leverages these credentials. You might create something like [this file](https://github.com/avahoffman/GHA_and_googlesheets/blob/main/.github/workflows/run_analysis.yml), also shown below.
 
-- I created a file that is called by the workflow, `render.R`, to keep things tidy. It looks for a directory called `.secrets` that is created and deleted by the workflow. You can find that file [here](https://github.com/avahoffman/GHA_and_googlesheets/blob/main/R/render.R).
+    - I created a file that is called by the workflow, `render.R`, to keep things tidy. It looks for a directory called `.secrets` that is created and deleted by the workflow. You can find that file [here](https://github.com/avahoffman/GHA_and_googlesheets/blob/main/R/render.R).
+    - Ultimately, the contents of your R analysis are up to you!
 
     ```
-    
     name: Run Google Sheet Analysis
     
     on:
@@ -108,12 +112,16 @@ knitr::include_graphics("img/gha_the_secrets.png")
           image: 'jhudsl/anvil-poll-2024:main'
     
         steps:
+          # Get files from the repository
+          - name: checkout
+            uses: actions/checkout@v4
+            
           # Set up / install jq so that json credentials can be read in
           - name: Install jq
             uses: dcarbone/install-jq-action@v2.1.0
     
-           # Run the analysis
-          - name: Run render file
+          # Run the analysis
+          - name: Run render script
             run: |
               if [ ! -d .secrets ]; then
                 mkdir .secrets
@@ -128,7 +136,7 @@ knitr::include_graphics("img/gha_the_secrets.png")
 
 ## Step 4: Give the service account permission
 
-1. Share whatever Google Sheet you'll be pulling from with your service account. Use the email that ends in "iam.gserviceaccount.com"
+1. Share the Google Sheet you'll be pulling from with your service account. Use the email that ends in "iam.gserviceaccount.com"
 
 - <span style="color:red;">Be careful not to print any sensitive data in your workflow!</span>
 
@@ -138,4 +146,14 @@ knitr::include_graphics("img/share_google_sheet.png")
 
 ## Step 5+: Test the workflow
 
-It's important to check if things are set up correctly
+1. It's important to check if things are set up correctly. Navigate to your "Actions" tab of your workflow and launch your GHA workflow, if it hasn't launched automatically.
+
+```{r}
+knitr::include_graphics("img/test_workflow.png")
+```
+
+2. From the output below, I can see the mean I requested in `render.R` was successfully calculated!
+
+```{r}
+knitr::include_graphics("img/success.png")
+```
