@@ -1,0 +1,44 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "",
+    "text": "How do you get the R package googlesheets4 to work inside a non-interactive GitHub Actions environment?\nYou need to give your workflow permission. Easier said than done!\nEverything associated with this tutorial can be found at avahoffman/GHA_and_googlesheets."
+  },
+  {
+    "objectID": "index.html#step-1-make-a-service-account",
+    "href": "index.html#step-1-make-a-service-account",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "Step 1: Make a service account",
+    "text": "Step 1: Make a service account\n\nGo to https://console.cloud.google.com/apis/credentials.\n\nIf you’re using a specific Gmail account to manage Google Cloud, make sure you’re logged in.\nIf your browser doesn’t redirect you to something like “https://console.cloud.google.com/apis/credentials?project=my-project”, you might need to make a project first. You can make a limited number of projects for free.\n\nClick on “CREATE CREDENTIALS” and select “Service account”.\n\nA service account is a special kind of account typically used by an application, rather than a person.\nCaution: Service account keys are a security risk if not managed correctly!\n\n\n\n\n\n\n\n\n\n\n\n\nFill in details. Be specific about the program and use. Click on “CREATE AND CONTINUE”.\n\n\n\n\n\n\n\n\n\n\n\nLeave “Grant this service account access to project” and “Grant users access to this service account” as is by clicking “CONTINUE” and “DONE”\n\nYou will be taken back to the credentials page. You’ll see your new service account that you created, and an email that looks something like “program-survey-2024@my-project.iam.gserviceaccount.com”.\n\n\n\n\n\n\n\n\n\n\n\n\nClick on the service account (something like “program-survey-2024@my-project.iam.gserviceaccount.com”).\nClick on “KEYS” &gt; “ADD KEY” &gt; “Create new key”.\n\n\n\n\n\n\n\n\n\n\n\nSelect “JSON” and click “CREATE”. This stores the key in your downloads. Service account keys could pose a security risk if compromised. Keep it safe!"
+  },
+  {
+    "objectID": "index.html#step-2-set-up-the-secret-on-github",
+    "href": "index.html#step-2-set-up-the-secret-on-github",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "Step 2: Set up the secret on GitHub",
+    "text": "Step 2: Set up the secret on GitHub\n\nOn GitHub, find or create the repository where you want to run a GitHub Action (GHA).\nGo to “Settings” &gt; “Secrets and variables” &gt; “Actions”\n\n\n\n\n\n\n\n\n\n\n\nClick on “New repository secret”\nFill in the name: GS_SA_FILENAME. Type in the name of the key you downloaded exactly. It will end in .json. Click “Add secret”.\n\n\n\n\n\n\n\n\n\n\n\nRepeat the process. Fill in the name: GS_SA_KEY. Type in the contents of the key you downloaded exactly.\n\nYou might have to open the key in a plain text application (e.g., TextEdit, Sublime Text). If you open it in your browser, it might not be formatted correctly.\nThe key will start with:\n{\n  \"type\": \"service_account\",`\n\nClick “Add secret”. Your secrets are now ready to use."
+  },
+  {
+    "objectID": "index.html#step-3-set-up-gha-and-your-analysis",
+    "href": "index.html#step-3-set-up-gha-and-your-analysis",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "Step 3: Set up GHA and your analysis",
+    "text": "Step 3: Set up GHA and your analysis\n\nCreate a GHA workflow that leverages these credentials. You might create something like this file, also shown below.\n\nI created a file that is called by the workflow, render.R, to keep things tidy. It looks for a directory called .secrets that is created and deleted by the workflow. You can find that file here.\nUltimately, the contents of your R analysis are up to you!\n\nname: Run Google Sheet Analysis\n\non:\n  workflow_dispatch:\n\njobs:\n\n  run-analysis:\n    name: Run Google Sheet Analysis\n    runs-on: ubuntu-latest\n    container:\n      # Use a container that has tidyverse, googlesheets4, etc. installed.\n      # It doesn't have to be this one\n      image: 'jhudsl/anvil-poll-2024:main'\n\n    steps:\n      # Get files from the repository\n      - name: checkout\n        uses: actions/checkout@v4\n\n      # Set up / install jq so that json credentials can be read in\n      - name: Install jq\n        uses: dcarbone/install-jq-action@v2.1.0\n\n      # Run the analysis\n      - name: Run render script\n        run: |\n          if [ ! -d .secrets ]; then\n            mkdir .secrets\n          fi\n          jq -n '${{ secrets.GS_SA_KEY }}' &gt; .secrets/${{ secrets.GS_SA_FILENAME }}\n          if test -f .secrets/${{ secrets.GS_SA_FILENAME }}; then\n            echo \"Key created!\"\n          fi\n          Rscript --vanilla \"R/render.R\"\n          rm -rf .secrets"
+  },
+  {
+    "objectID": "index.html#step-4-give-the-service-account-permission",
+    "href": "index.html#step-4-give-the-service-account-permission",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "Step 4: Give the service account permission",
+    "text": "Step 4: Give the service account permission\n\nShare the Google Sheet you’ll be pulling from with your service account. Use the email that ends in “iam.gserviceaccount.com”\n\n\nBe careful not to print any sensitive data in your workflow!"
+  },
+  {
+    "objectID": "index.html#step-5-test-the-workflow",
+    "href": "index.html#step-5-test-the-workflow",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "Step 5+: Test the workflow",
+    "text": "Step 5+: Test the workflow\n\nIt’s important to check if things are set up correctly. Navigate to your “Actions” tab of your workflow and launch your GHA workflow, if it hasn’t launched automatically.\n\n\n\n\n\n\n\n\n\n\n\nFrom the output below, I can see the mean I requested in render.R was successfully calculated!"
+  }
+]
