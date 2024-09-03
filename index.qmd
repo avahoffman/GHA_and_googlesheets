@@ -1,0 +1,85 @@
+---
+title: "GitHub Actions + Google Sheets"
+---
+
+```{r, setup, include=FALSE}
+knitr::opts_chunk$set(
+  out.width = "85%", echo = FALSE, fig.align='center'
+)
+```
+
+How do you get the R package `googlesheets4` to work inside a non-interactive GitHub Actions environment?
+
+## Step 1: Make a service account
+
+1. Go to [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials). 
+
+- If you're using a specific Gmail account to manage Google Cloud, make sure you're logged in.
+- If your browser doesn't redirect you to something like "https://console.cloud.google.com/apis/credentials?project=my-project", you might need to make one first. You can make a limited number of projects for free.
+
+2. Click on "CREATE CREDENTIALS" and select "Service account".
+
+- A service account is a special kind of account typically used by an application, rather than a person.
+- **Caution:** Service account keys are a security risk if not managed correctly!
+
+```{r}
+knitr::include_graphics("img/create_creds.png")
+```
+
+3. Fill in details. Be specific about the program and use. Click on "CREATE AND CONTINUE".
+
+```{r}
+knitr::include_graphics("img/service_acct_name.png")
+```
+
+4. Leave "Grant this service account access to project" and "Grant users access to this service account" as is by clicking "CONTINUE" and "DONE"
+
+- You will be taken back to the credentials page. You'll see your new service account that you created, and an email that looks something like "program-survey-2024@my-project.iam.gserviceaccount.com".
+
+```{r}
+knitr::include_graphics("img/service_acct_done.png")
+```
+
+5. Click on the service account (something like "program-survey-2024@my-project.iam.gserviceaccount.com").
+
+6. Click on "KEYS" > "ADD KEY" > "Create new key".
+
+```{r}
+knitr::include_graphics("img/service_acct_newkey.png")
+```
+
+7. Select "JSON" and click "CREATE". This stores the key in your downloads. <span style="color:red;">Service account keys could pose a security risk if compromised. Keep it safe!</span>
+
+## Step 2: Set up the secret on GitHub
+
+1. On GitHub, find or create the repository where you want to run a GitHub Action (GHA). 
+
+2. Go to "Settings" > "Secrets and variables" > "Actions"
+
+```{r}
+knitr::include_graphics("img/gha_repo_secret.png")
+```
+
+3. Click on "New repository secret"
+
+4. Fill in the name: `GS_SA_FILENAME`. Type in the name of the key you downloaded exactly. It will end in `.json`. Click "Add secret".
+
+```{r}
+knitr::include_graphics("img/gha_new_secret.png")
+```
+
+5. Repeat the process. Fill in the name: `GS_SA_KEY`. Type in the contents of the key you downloaded exactly. 
+
+- You might have to open the key in a plain text application. If you open it in your browser, it might not be formatted correctly.
+- The key will start with:
+
+    ```
+    {
+      "type": "service_account",`
+    ```
+
+6. Click "Add secret". Your secrets are now ready to use.
+
+```{r}
+knitr::include_graphics("img/gha_the_secrets.png")
+```
