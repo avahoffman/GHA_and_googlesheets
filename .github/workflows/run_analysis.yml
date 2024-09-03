@@ -8,7 +8,6 @@ jobs:
 
   run-analysis:
     name: Run Google Sheet Analysis
-    needs: yaml-check
     runs-on: ubuntu-latest
     container:
       # Use a container that has tidyverse, googlesheets4, etc. installed.
