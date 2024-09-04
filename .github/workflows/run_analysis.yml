@@ -16,6 +16,10 @@ jobs:
       # Get files from the repository
       - name: checkout
         uses: actions/checkout@v4
+
+      # Set up / install jq
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v2.1.0
         
       - name: get data
         id: 'get_sheet'
