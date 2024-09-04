@@ -24,7 +24,7 @@ jobs:
           spreadsheetId: '1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U' # Specific Google Sheet URL
           commands: | # list of commands, specified as a valid JSON string
             [
-              { "command": "addWorksheet", "args": { "worksheetTitle": "Sheet1" }},
+              { "command": "getWorksheet", "args": { "worksheetTitle": "Sheet1" }},
               { "command": "getData", "args": { "range": "'Sheet1'!A2:B3" } }
             ]
         env:
