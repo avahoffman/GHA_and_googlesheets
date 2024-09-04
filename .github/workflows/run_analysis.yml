@@ -21,10 +21,11 @@ jobs:
         id: 'get_sheet'
         uses: jroehl/gsheet.action@release
         with:
-          spreadsheetId: 1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U # Specific Google Sheet URL
+          spreadsheetId: '1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U' # Specific Google Sheet URL
           commands: | # list of commands, specified as a valid JSON string
             [
-              { "command": "getSpreadsheet" }
+              { "command": "addWorksheet", "args": { "worksheetTitle": "Sheet1" }},
+              { "command": "getData", "args": { "range": "'Sheet1'!A2:B3" } }
             ]
         env:
           GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
