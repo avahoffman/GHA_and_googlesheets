@@ -19,7 +19,7 @@ jobs:
         
       - name: get data
         id: 'get_sheet'
-        uses: jroehl/gsheet.action@release
+        uses: jroehl/gsheet.action@2.1.1
         with:
           spreadsheetId: '1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U' # Specific Google Sheet URL
           commands: | # list of commands, specified as a valid JSON string
