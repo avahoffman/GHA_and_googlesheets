@@ -34,7 +34,7 @@ jsonResults <- opt$data_in
 
 # --------- Interpret the JSON data ---------
 
-df <- fromJSON(jsonResults) %>% as.data.frame
+df <- fromJSON(jsonResults)$formatted
 
 # --------- Any analysis you want to do ---------
 
