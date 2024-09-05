@@ -34,11 +34,14 @@ jsonResults <- opt$data_in
 
 # --------- Interpret the JSON data ---------
 
-df <- fromJSON(jsonResults)$formatted
+df <- fromJSON(jsonResults)
 
 # --------- Any analysis you want to do ---------
 
-message(head(df))
+message(jsonResults)
+message(df)
+message(df$formatted)
+message(df$rawData)
 
 # message(
 #   mean(df$`How would you rate our platform?`)
