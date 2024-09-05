@@ -35,7 +35,7 @@ jsonResults <- opt$data_in
 # --------- Interpret the JSON data ---------
 
 df <- fromJSON(jsonResults)
-df <- out2$results$result$formatted[[2]]
+df <- df$results$result$formatted[[2]]
 
 # Repair if you have column names on your spreadsheet
 colnames(df) <- df[1,] # colnames taken from first row of data
