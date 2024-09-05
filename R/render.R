@@ -35,14 +35,12 @@ jsonResults <- opt$data_in
 # --------- Interpret the JSON data ---------
 
 df <- fromJSON(jsonResults)
+df <- out2$results$result$formatted[[2]]
+
+# Repair if you have column names on your spreadsheet
+colnames(df) <- df[1,] # colnames taken from first row of data
+df <- df[-1,] # remove the first row of data (original column names)
 
 # --------- Any analysis you want to do ---------
 
-message(jsonResults)
 message(df)
-message(df$formatted)
-message(df$rawData)
-
-# message(
-#   mean(df$`How would you rate our platform?`)
-# )
