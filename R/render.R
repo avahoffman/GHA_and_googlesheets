@@ -9,7 +9,8 @@
 # Google Sheets in question must also be shared with the Google Service Account.
 
 
-install.packages(c("optparse", "jsonlite", "dplyr"))
+install.packages(c("optparse", "jsonlite", "dplyr"),
+                 repos = "https://cloud.r-project.org")
 library(optparse)
 library(jsonlite)
 library(dplyr)
