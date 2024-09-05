@@ -29,18 +29,20 @@ jobs:
           commands: | # list of commands, specified as a valid JSON string
             [
               { "command": "getWorksheet", "args": { "worksheetTitle": "Sheet1" }},
-              { "command": "getData", "args": { "range": "'Sheet1'!A2:B3" } }
+              { "command": "getData", "args": { "range": "'Sheet1'!A:B" } }
             ]
         env:
           GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
           GSHEET_PRIVATE_KEY: ${{ secrets.GSHEET_PRIVATE_KEY }}
-          
-      - name: dump results
-        env:
-          #  the output of the action can be found in ${{ steps.update_worksheet.outputs.results }}
-          RESULTS: ${{ steps.get_sheet.outputs.results }}
-        run: echo "$RESULTS" | jq
         
+      # Run the analysis
+      - name: Run render script
+        env:
+          #  the output of the action above!
+          RESULTS: ${{ steps.get_sheet.outputs.results }}
+        run: |
+          Rscript --vanilla "R/render.R" --data_in "$RESULTS"
+
       # # Set up / install jq so that json credentials can be read in
       # - name: Install jq
       #   uses: dcarbone/install-jq-action@v2.1.0

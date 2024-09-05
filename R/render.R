@@ -8,21 +8,37 @@
 # Note that credentials need to be created in the workflows first. Any 
 # Google Sheets in question must also be shared with the Google Service Account.
 
-# --------- Authenticate ---------
 
-library(googlesheets4)
+install.packages(c("optparse", "jsonlite", "dplyr"))
+library(optparse)
+library(jsonlite)
+library(dplyr)
 
-gs4_deauth()
-gs4_auth(
-  token = gargle::credentials_service_account(path = paste0(
-    ".secrets/", grep(".json$", list.files(".secrets"), value = TRUE)
-  ),
-  scopes = "https://www.googleapis.com/auth/spreadsheets")
+# --------- Get the GHA output ---------
+
+# Look for the data_in argument
+option_list <- list(
+  optparse::make_option(
+    c("--data_in"),
+    type = "character",
+    default = NULL,
+    help = "Sheet Results (json)",
+  )
 )
 
-df <- 
-  read_sheet("https://docs.google.com/spreadsheets/d/1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U/edit?gid=0#gid=0")
+# Read the resutlts provided as command line argument
+opt_parser <- optparse::OptionParser(option_list = option_list)
+opt <- optparse::parse_args(opt_parser)
+jsonResults <- opt$data_in
 
-message(
-  mean(df$`How would you rate our platform?`)
-)
+# --------- Interpret the JSON data ---------
+
+df <- fromJSON(jsonResults) %>% as.data.frame
+
+# --------- Any analysis you want to do ---------
+
+message(head(df))
+
+# message(
+#   mean(df$`How would you rate our platform?`)
+# )
