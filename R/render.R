@@ -40,7 +40,8 @@ df <- df$results$result$formatted[[2]]
 # Repair if you have column names on your spreadsheet
 colnames(df) <- df[1,] # colnames taken from first row of data
 df <- df[-1,] # remove the first row of data (original column names)
+df <- as_tibble(df)
 
 # --------- Any analysis you want to do ---------
 
-message(df)
+print(df)
