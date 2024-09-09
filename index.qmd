@@ -157,7 +157,7 @@ jobs:
           Rscript --vanilla "R/render.R" --data_in "$RESULTS"
 ```
 
-## Step 4: Set up your analysis
+## Step 5: Set up your analysis
 
 You'll want to leverage the data inside an R script. You might create something like [this file](https://github.com/avahoffman/GHA_and_googlesheets/blob/main/R/render.R), also shown below.
 
@@ -215,7 +215,7 @@ rmarkdown::render_site(
 ```
     
 
-## Step 5+: Test the workflow
+## Step 6+: Test the workflow
 
 1. It's important to check if things are set up correctly. Navigate to your "Actions" tab of your workflow and launch your GHA workflow, if it hasn't launched automatically.
 
@@ -223,7 +223,11 @@ rmarkdown::render_site(
 knitr::include_graphics("img/test_workflow.png")
 ```
 
-2. From the output below, I can see the mean I requested in `render.R` was successfully calculated!
+2. Click through to the completed workflow. From the output below, we can see the mean I requested in `render.R` was successfully calculated!
+
+```{r}
+knitr::include_graphics("img/click_workflow.png")
+```
 
 ```{r}
 knitr::include_graphics("img/success.png")

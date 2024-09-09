@@ -141,8 +141,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#step-2-set-up-the-secret-on-github" id="toc-step-2-set-up-the-secret-on-github" class="nav-link" data-scroll-target="#step-2-set-up-the-secret-on-github">Step 2: Set up the secret on GitHub</a></li>
   <li><a href="#step-3-give-the-service-account-permission" id="toc-step-3-give-the-service-account-permission" class="nav-link" data-scroll-target="#step-3-give-the-service-account-permission">Step 3: Give the service account permission</a></li>
   <li><a href="#step-4-set-up-gha" id="toc-step-4-set-up-gha" class="nav-link" data-scroll-target="#step-4-set-up-gha">Step 4: Set up GHA</a></li>
-  <li><a href="#step-4-set-up-your-analysis" id="toc-step-4-set-up-your-analysis" class="nav-link" data-scroll-target="#step-4-set-up-your-analysis">Step 4: Set up your analysis</a></li>
-  <li><a href="#step-5-test-the-workflow" id="toc-step-5-test-the-workflow" class="nav-link" data-scroll-target="#step-5-test-the-workflow">Step 5+: Test the workflow</a></li>
+  <li><a href="#step-5-set-up-your-analysis" id="toc-step-5-set-up-your-analysis" class="nav-link" data-scroll-target="#step-5-set-up-your-analysis">Step 5: Set up your analysis</a></li>
+  <li><a href="#step-6-test-the-workflow" id="toc-step-6-test-the-workflow" class="nav-link" data-scroll-target="#step-6-test-the-workflow">Step 6+: Test the workflow</a></li>
   </ul>
 </nav>
     </div>
@@ -379,11 +379,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
 <span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>          Rscript --vanilla "R/render.R" --data_in "$RESULTS"</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="step-4-set-up-your-analysis" class="level2">
-<h2 class="anchored" data-anchor-id="step-4-set-up-your-analysis">Step 4: Set up your analysis</h2>
+<section id="step-5-set-up-your-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="step-5-set-up-your-analysis">Step 5: Set up your analysis</h2>
 <p>You’ll want to leverage the data inside an R script. You might create something like <a href="https://github.com/avahoffman/GHA_and_googlesheets/blob/main/R/render.R">this file</a>, also shown below.</p>
 <ul>
 <li>The main line that does this is in the workflow above is <code>Rscript --vanilla "R/render.R" --data_in "$RESULTS"</code></li>
+<li>The script below takes the <code>$RESULTS</code> and creates a tibble <code>df</code>.</li>
 <li>Ultimately, the contents of your R analysis are up to you!</li>
 <li><span style="color:red;">Be careful not to print any sensitive data in your workflow!</span></li>
 </ul>
@@ -424,18 +425,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="co"># --------- Any analysis you want to do ---------</span></span>
 <span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co"># --------- Don't print sensitive data!! --------</span></span>
 <span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">mean</span>(df<span class="sc">$</span><span class="st">`</span><span class="at">How would you rate our platform?</span><span class="st">`</span>))</span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co"># --------- Render web pages from Rmd docs ---------</span></span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>rmarkdown<span class="sc">::</span><span class="fu">render_site</span>(</span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>  <span class="at">input =</span> <span class="st">"pages"</span>,</span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>  <span class="at">envir =</span> <span class="fu">new.env</span>(<span class="at">parent =</span> <span class="fu">globalenv</span>()) <span class="co"># enable use of 'df' inside the Rmd being rendered</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span><span class="st">`</span><span class="at">How would you rate our platform?</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(df<span class="sc">$</span><span class="st">`</span><span class="at">How would you rate our platform?</span><span class="st">`</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">mean</span>(df<span class="sc">$</span><span class="st">`</span><span class="at">How would you rate our platform?</span><span class="st">`</span>))</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co"># --------- Render web pages from Rmd docs ---------</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>rmarkdown<span class="sc">::</span><span class="fu">render_site</span>(</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>  <span class="at">input =</span> <span class="st">"pages"</span>,</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>  <span class="at">envir =</span> <span class="fu">new.env</span>(<span class="at">parent =</span> <span class="fu">globalenv</span>()) <span class="co"># enable use of 'df' inside the Rmd being rendered</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="step-5-test-the-workflow" class="level2">
-<h2 class="anchored" data-anchor-id="step-5-test-the-workflow">Step 5+: Test the workflow</h2>
+<section id="step-6-test-the-workflow" class="level2">
+<h2 class="anchored" data-anchor-id="step-6-test-the-workflow">Step 6+: Test the workflow</h2>
 <ol type="1">
 <li>It’s important to check if things are set up correctly. Navigate to your “Actions” tab of your workflow and launch your GHA workflow, if it hasn’t launched automatically.</li>
 </ol>
@@ -449,8 +451,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <ol start="2" type="1">
-<li>From the output below, I can see the mean I requested in <code>render.R</code> was successfully calculated!</li>
+<li>Click through to the completed workflow. From the output below, we can see the mean I requested in <code>render.R</code> was successfully calculated!</li>
 </ol>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/click_workflow.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%"></p>
+</figure>
+</div>
+</div>
+</div>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
