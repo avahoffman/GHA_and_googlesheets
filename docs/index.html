@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -105,8 +139,9 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#step-1-make-a-service-account" id="toc-step-1-make-a-service-account" class="nav-link active" data-scroll-target="#step-1-make-a-service-account">Step 1: Make a service account</a></li>
   <li><a href="#step-2-set-up-the-secret-on-github" id="toc-step-2-set-up-the-secret-on-github" class="nav-link" data-scroll-target="#step-2-set-up-the-secret-on-github">Step 2: Set up the secret on GitHub</a></li>
-  <li><a href="#step-3-set-up-gha-and-your-analysis" id="toc-step-3-set-up-gha-and-your-analysis" class="nav-link" data-scroll-target="#step-3-set-up-gha-and-your-analysis">Step 3: Set up GHA and your analysis</a></li>
-  <li><a href="#step-4-give-the-service-account-permission" id="toc-step-4-give-the-service-account-permission" class="nav-link" data-scroll-target="#step-4-give-the-service-account-permission">Step 4: Give the service account permission</a></li>
+  <li><a href="#step-3-give-the-service-account-permission" id="toc-step-3-give-the-service-account-permission" class="nav-link" data-scroll-target="#step-3-give-the-service-account-permission">Step 3: Give the service account permission</a></li>
+  <li><a href="#step-4-set-up-gha" id="toc-step-4-set-up-gha" class="nav-link" data-scroll-target="#step-4-set-up-gha">Step 4: Set up GHA</a></li>
+  <li><a href="#step-4-set-up-your-analysis" id="toc-step-4-set-up-your-analysis" class="nav-link" data-scroll-target="#step-4-set-up-your-analysis">Step 4: Set up your analysis</a></li>
   <li><a href="#step-5-test-the-workflow" id="toc-step-5-test-the-workflow" class="nav-link" data-scroll-target="#step-5-test-the-workflow">Step 5+: Test the workflow</a></li>
   </ul>
 </nav>
@@ -133,7 +168,7 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>How do you get the R package <code>googlesheets4</code> to work inside a non-interactive GitHub Actions environment?</p>
+<p>How do you get access to Google Sheets data in R while inside a non-interactive GitHub Actions environment?</p>
 <p>You need to give your workflow permission. Easier said than done!</p>
 <p>Everything associated with this tutorial can be found at <a href="https://github.com/avahoffman/GHA_and_googlesheets">avahoffman/GHA_and_googlesheets</a>.</p>
 <section id="step-1-make-a-service-account" class="level2">
@@ -220,26 +255,44 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <ol start="3" type="1">
 <li><p>Click on “New repository secret”</p></li>
-<li><p>Fill in the name: <code>GS_SA_FILENAME</code>. Type in the name of the key you downloaded exactly. It will end in <code>.json</code>. Click “Add secret”.</p></li>
+<li><p>Fill in the name: <code>GSHEET_CLIENT_EMAIL</code>. Type in the name of the email generated above. It will end in <code>iam.gserviceaccount.com</code>. Click “Add secret”.</p></li>
 </ol>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="img/gha_new_secret.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%"></p>
+<p><img src="img/gha_new_client_email.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%"></p>
 </figure>
 </div>
 </div>
 </div>
 <ol start="5" type="1">
-<li><p>Repeat the process. Fill in the name: <code>GS_SA_KEY</code>. Type in the contents of the key you downloaded exactly.</p>
-<ul>
-<li><p>You might have to open the key in a plain text application (e.g., TextEdit, Sublime Text). If you open it in your browser, it might not be formatted correctly.</p></li>
-<li><p>The key will start with:</p>
-<pre><code>{
-  "type": "service_account",`</code></pre></li>
-</ul></li>
-<li><p>Click “Add secret”. Your secrets are now ready to use.</p></li>
+<li><p>Create another secret. Fill in the name: <code>GSHEET_PRIVATE_KEY</code>.</p></li>
+<li><p>Go to your <code>.json</code> key you just downloaded. Open it up and locate the field <code>private_key</code>. It will look something like this.</p></li>
+</ol>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/key_unformatted.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<ol start="7" type="1">
+<li>You’ll need to replace all the <code>\n</code> with line breaks. You can do this manually or in R using <code>message()</code>. Paste this as your secret.</li>
+</ol>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/key_formatted.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<ol start="6" type="1">
+<li>Click “Add secret”. Your secrets are now ready to use.</li>
 </ol>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
@@ -251,60 +304,11 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </section>
-<section id="step-3-set-up-gha-and-your-analysis" class="level2">
-<h2 class="anchored" data-anchor-id="step-3-set-up-gha-and-your-analysis">Step 3: Set up GHA and your analysis</h2>
-<ol type="1">
-<li><p>Create a GHA workflow that leverages these credentials. You might create something like <a href="https://github.com/avahoffman/GHA_and_googlesheets/blob/main/.github/workflows/run_analysis.yml">this file</a>, also shown below.</p>
-<ul>
-<li>I created a file that is called by the workflow, <code>render.R</code>, to keep things tidy. It looks for a directory called <code>.secrets</code> that is created and deleted by the workflow. You can find that file <a href="https://github.com/avahoffman/GHA_and_googlesheets/blob/main/R/render.R">here</a>.</li>
-<li>Ultimately, the contents of your R analysis are up to you!</li>
-</ul>
-<pre><code>name: Run Google Sheet Analysis
-
-on:
-  workflow_dispatch:
-
-jobs:
-
-  run-analysis:
-    name: Run Google Sheet Analysis
-    runs-on: ubuntu-latest
-    container:
-      # Use a container that has tidyverse, googlesheets4, etc. installed.
-      # It doesn't have to be this one
-      image: 'jhudsl/anvil-poll-2024:main'
-
-    steps:
-      # Get files from the repository
-      - name: checkout
-        uses: actions/checkout@v4
-
-      # Set up / install jq so that json credentials can be read in
-      - name: Install jq
-        uses: dcarbone/install-jq-action@v2.1.0
-
-      # Run the analysis
-      - name: Run render script
-        run: |
-          if [ ! -d .secrets ]; then
-            mkdir .secrets
-          fi
-          jq -n '${{ secrets.GS_SA_KEY }}' &gt; .secrets/${{ secrets.GS_SA_FILENAME }}
-          if test -f .secrets/${{ secrets.GS_SA_FILENAME }}; then
-            echo "Key created!"
-          fi
-          Rscript --vanilla "R/render.R"
-          rm -rf .secrets</code></pre></li>
-</ol>
-</section>
-<section id="step-4-give-the-service-account-permission" class="level2">
-<h2 class="anchored" data-anchor-id="step-4-give-the-service-account-permission">Step 4: Give the service account permission</h2>
+<section id="step-3-give-the-service-account-permission" class="level2">
+<h2 class="anchored" data-anchor-id="step-3-give-the-service-account-permission">Step 3: Give the service account permission</h2>
 <ol type="1">
 <li>Share the Google Sheet you’ll be pulling from with your service account. Use the email that ends in “iam.gserviceaccount.com”</li>
 </ol>
-<ul>
-<li><span style="color:red;">Be careful not to print any sensitive data in your workflow!</span></li>
-</ul>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -313,6 +317,121 @@ jobs:
 </figure>
 </div>
 </div>
+</div>
+<ol start="2" type="1">
+<li>Note the Sheet ID. This can be found between <code>/d/</code> and <code>/edit?</code>.</li>
+</ol>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/sheetID.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="step-4-set-up-gha" class="level2">
+<h2 class="anchored" data-anchor-id="step-4-set-up-gha">Step 4: Set up GHA</h2>
+<p>Edit/Create a workflow that leverages these credentials. You might create something like <a href="https://github.com/avahoffman/GHA_and_googlesheets/blob/main/.github/workflows/run_analysis.yml">this file</a>, also shown below. This workflow leverages the existing GHA <a href="https://github.com/marketplace/actions/gsheet-action"><code>jroehl/gsheet.action@v2.1.1</code></a>. It “grabs” the data.</p>
+<ul>
+<li>Instead of <code>'1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U'</code>, provide the sheet ID you are interested in.</li>
+<li>Instead of <code>"Sheet1"</code>, provide the correct worksheet name.</li>
+<li>Supply the correct range of cells.</li>
+</ul>
+<div class="sourceCode" id="cb1" data-eval="F," data-echo="T"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Run Google Sheet Analysis</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">on</span><span class="kw">:</span><span class="at"> workflow_dispatch</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">run-analysis</span><span class="kw">:</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Run Google Sheet Analysis</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">container</span><span class="kw">:</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">      # Use a container that has most dependencies installed.</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">      # It doesn't have to be this one</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">image</span><span class="kw">:</span><span class="at"> </span><span class="st">'jhudsl/base_ottr:latest'</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">      # Get files from the repository</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> checkout</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v4</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">        </span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> get data</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">id</span><span class="kw">:</span><span class="at"> </span><span class="st">'get_sheet'</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> jroehl/gsheet.action@v2.1.1</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">spreadsheetId</span><span class="kw">:</span><span class="at"> </span><span class="st">'1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U'</span><span class="co"> # Specific Google Sheet URL</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="fu">          commands</span><span class="kw">: </span><span class="ch">|</span><span class="co"> # list of commands, specified as a valid JSON string</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>            [</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>              { "command": "getWorksheet", "args": { "worksheetTitle": "Sheet1" }},</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>              { "command": "getData", "args": { "range": "'Sheet1'!A:B" } }</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>            ]</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">env</span><span class="kw">:</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">GSHEET_CLIENT_EMAIL</span><span class="kw">:</span><span class="at"> ${{ secrets.GSHEET_CLIENT_EMAIL }}</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">GSHEET_PRIVATE_KEY</span><span class="kw">:</span><span class="at"> ${{ secrets.GSHEET_PRIVATE_KEY }}</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="at">        </span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="co">      # Run the analysis</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Run render script</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">env</span><span class="kw">:</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="co">          #  the output of the action above!</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">RESULTS</span><span class="kw">:</span><span class="at"> ${{ steps.get_sheet.outputs.results }}</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>          Rscript --vanilla "R/render.R" --data_in "$RESULTS"</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="step-4-set-up-your-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="step-4-set-up-your-analysis">Step 4: Set up your analysis</h2>
+<p>You’ll want to leverage the data inside an R script. You might create something like <a href="https://github.com/avahoffman/GHA_and_googlesheets/blob/main/R/render.R">this file</a>, also shown below.</p>
+<ul>
+<li>The main line that does this is in the workflow above is <code>Rscript --vanilla "R/render.R" --data_in "$RESULTS"</code></li>
+<li>Ultimately, the contents of your R analysis are up to you!</li>
+<li><span style="color:red;">Be careful not to print any sensitive data in your workflow!</span></li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"jsonlite"</span>, <span class="at">repos =</span> <span class="st">"https://cloud.r-project.org"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(optparse) <span class="co"># make_option OptionParser parse_args</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jsonlite) <span class="co"># fromJSON</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># --------- Get the output from GHA ---------</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Look for the data_in argument</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>option_list <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  optparse<span class="sc">::</span><span class="fu">make_option</span>(</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">"--data_in"</span>),</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"character"</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">default =</span> <span class="cn">NULL</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">help =</span> <span class="st">"Sheet Results (json)"</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the results provided as command line argument</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>opt_parser <span class="ot">&lt;-</span> optparse<span class="sc">::</span><span class="fu">OptionParser</span>(<span class="at">option_list =</span> option_list)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>opt <span class="ot">&lt;-</span> optparse<span class="sc">::</span><span class="fu">parse_args</span>(opt_parser)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>jsonResults <span class="ot">&lt;-</span> opt<span class="sc">$</span>data_in</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co"># --------- Interpret the JSON data ---------</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull the data itself from the API results</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(jsonResults)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df<span class="sc">$</span>results<span class="sc">$</span>result<span class="sc">$</span>formatted[[<span class="dv">2</span>]]</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Repair if you have column names on your spreadsheet</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(df) <span class="ot">&lt;-</span> df[<span class="dv">1</span>, ] <span class="co"># colnames taken from first row of data</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df[<span class="sc">-</span><span class="dv">1</span>, ] <span class="co"># remove the first row of data (original column names)</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">as_tibble</span>(df)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="co"># --------- Any analysis you want to do ---------</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co"># --------- Don't print sensitive data!! --------</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">mean</span>(df<span class="sc">$</span><span class="st">`</span><span class="at">How would you rate our platform?</span><span class="st">`</span>))</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co"># --------- Render web pages from Rmd docs ---------</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>rmarkdown<span class="sc">::</span><span class="fu">render_site</span>(</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>  <span class="at">input =</span> <span class="st">"pages"</span>,</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>  <span class="at">envir =</span> <span class="fu">new.env</span>(<span class="at">parent =</span> <span class="fu">globalenv</span>()) <span class="co"># enable use of 'df' inside the Rmd being rendered</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="step-5-test-the-workflow" class="level2">

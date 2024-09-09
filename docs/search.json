@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "GitHub Actions + Google Sheets",
     "section": "",
-    "text": "How do you get the R package googlesheets4 to work inside a non-interactive GitHub Actions environment?\nYou need to give your workflow permission. Easier said than done!\nEverything associated with this tutorial can be found at avahoffman/GHA_and_googlesheets."
+    "text": "How do you get access to Google Sheets data in R while inside a non-interactive GitHub Actions environment?\nYou need to give your workflow permission. Easier said than done!\nEverything associated with this tutorial can be found at avahoffman/GHA_and_googlesheets."
   },
   {
     "objectID": "index.html#step-1-make-a-service-account",
@@ -18,7 +18,7 @@
     "href": "index.html#step-2-set-up-the-secret-on-github",
     "title": "GitHub Actions + Google Sheets",
     "section": "Step 2: Set up the secret on GitHub",
-    "text": "Step 2: Set up the secret on GitHub\n\nOn GitHub, find or create the repository where you want to run a GitHub Action (GHA).\nGo to “Settings” &gt; “Secrets and variables” &gt; “Actions”\n\n\n\n\n\n\n\n\n\n\n\nClick on “New repository secret”\nFill in the name: GS_SA_FILENAME. Type in the name of the key you downloaded exactly. It will end in .json. Click “Add secret”.\n\n\n\n\n\n\n\n\n\n\n\nRepeat the process. Fill in the name: GS_SA_KEY. Type in the contents of the key you downloaded exactly.\n\nYou might have to open the key in a plain text application (e.g., TextEdit, Sublime Text). If you open it in your browser, it might not be formatted correctly.\nThe key will start with:\n{\n  \"type\": \"service_account\",`\n\nClick “Add secret”. Your secrets are now ready to use."
+    "text": "Step 2: Set up the secret on GitHub\n\nOn GitHub, find or create the repository where you want to run a GitHub Action (GHA).\nGo to “Settings” &gt; “Secrets and variables” &gt; “Actions”\n\n\n\n\n\n\n\n\n\n\n\nClick on “New repository secret”\nFill in the name: GSHEET_CLIENT_EMAIL. Type in the name of the email generated above. It will end in iam.gserviceaccount.com. Click “Add secret”.\n\n\n\n\n\n\n\n\n\n\n\nCreate another secret. Fill in the name: GSHEET_PRIVATE_KEY.\nGo to your .json key you just downloaded. Open it up and locate the field private_key. It will look something like this.\n\n\n\n\n\n\n\n\n\n\n\nYou’ll need to replace all the \\n with line breaks. You can do this manually or in R using message(). Paste this as your secret.\n\n\n\n\n\n\n\n\n\n\n\nClick “Add secret”. Your secrets are now ready to use."
   },
   {
     "objectID": "index.html#step-3-set-up-gha-and-your-analysis",
@@ -40,5 +40,47 @@
     "title": "GitHub Actions + Google Sheets",
     "section": "Step 5+: Test the workflow",
     "text": "Step 5+: Test the workflow\n\nIt’s important to check if things are set up correctly. Navigate to your “Actions” tab of your workflow and launch your GHA workflow, if it hasn’t launched automatically.\n\n\n\n\n\n\n\n\n\n\n\nFrom the output below, I can see the mean I requested in render.R was successfully calculated!"
+  },
+  {
+    "objectID": "pages/index.html",
+    "href": "pages/index.html",
+    "title": "Example document",
+    "section": "",
+    "text": "This is an example document that will be rendered using Google Sheets data. Some rendered code is shown below.\n\nhead(df)\n\n                                              \n1 function (x, df1, df2, ncp, log = FALSE)    \n2 {                                           \n3     if (missing(ncp))                       \n4         .Call(C_df, x, df1, df2, log)       \n5     else .Call(C_dnf, x, df1, df2, ncp, log)\n6 }"
+  },
+  {
+    "objectID": "pages/index.html#example",
+    "href": "pages/index.html#example",
+    "title": "Example document",
+    "section": "",
+    "text": "This is an example document that will be rendered using Google Sheets data. Some rendered code is shown below.\n\nhead(df)\n\n                                              \n1 function (x, df1, df2, ncp, log = FALSE)    \n2 {                                           \n3     if (missing(ncp))                       \n4         .Call(C_df, x, df1, df2, log)       \n5     else .Call(C_dnf, x, df1, df2, ncp, log)\n6 }"
+  },
+  {
+    "objectID": "index.html#step-3-give-the-service-account-permission",
+    "href": "index.html#step-3-give-the-service-account-permission",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "Step 3: Give the service account permission",
+    "text": "Step 3: Give the service account permission\n\nShare the Google Sheet you’ll be pulling from with your service account. Use the email that ends in “iam.gserviceaccount.com”\n\n\n\n\n\n\n\n\n\n\n\nNote the Sheet ID. This can be found between /d/ and /edit?."
+  },
+  {
+    "objectID": "index.html#step-4-set-up-gha-and-your-analysis",
+    "href": "index.html#step-4-set-up-gha-and-your-analysis",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "Step 4: Set up GHA and your analysis",
+    "text": "Step 4: Set up GHA and your analysis\n\nEdit/Create a GHA workflow that leverages these credentials. You might create something like this file, also shown below. This workflow leverages the existing GHA jroehl/gsheet.action@v2.1.1. It “grabs” the data.\n\nInstead of '1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U', provide the sheet ID you are interested in.\nInstead of \"Sheet1\", provide the correct worksheet name.\nSupply the correct range of cells.\n\nname: Run Google Sheet Analysis\non: workflow_dispatch\n\njobs:\n\n  run-analysis:\n    name: Run Google Sheet Analysis\n    runs-on: ubuntu-latest\n    container:\n      # Use a container that has most dependencies installed.\n      # It doesn't have to be this one\n      image: 'jhudsl/base_ottr:latest'\n\n    steps:\n      # Get files from the repository\n      - name: checkout\n        uses: actions/checkout@v4\n\n      - name: get data\n        id: 'get_sheet'\n        uses: jroehl/gsheet.action@v2.1.1\n        with:\n          spreadsheetId: '1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U' # Specific Google Sheet URL\n          commands: | # list of commands, specified as a valid JSON string\n            [\n              { \"command\": \"getWorksheet\", \"args\": { \"worksheetTitle\": \"Sheet1\" }},\n              { \"command\": \"getData\", \"args\": { \"range\": \"'Sheet1'!A:B\" } }\n            ]\n        env:\n          GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}\n          GSHEET_PRIVATE_KEY: ${{ secrets.GSHEET_PRIVATE_KEY }}\n\n      # Run the analysis\n      - name: Run render script\n        env:\n          #  the output of the action above!\n          RESULTS: ${{ steps.get_sheet.outputs.results }}\n        run: |\n          Rscript --vanilla \"R/render.R\" --data_in \"$RESULTS\"\nNext, you’ll want to leverage the data inside an R script. You might create something like this file, also shown below.\n\nThe main line that does this is Rscript --vanilla \"R/render.R\" --data_in \"$RESULTS\"\nUltimately, the contents of your R analysis are up to you!\nBe careful not to print any sensitive data in your workflow!\n\ninstall.packages(\"jsonlite\", repos = \"https://cloud.r-project.org\")\n\nlibrary(optparse) # make_option OptionParser parse_args\nlibrary(jsonlite) # fromJSON\n\n# --------- Get the output from GHA ---------\n\n# Look for the data_in argument\noption_list &lt;- list(\n  optparse::make_option(\n    c(\"--data_in\"),\n    type = \"character\",\n    default = NULL,\n    help = \"Sheet Results (json)\",\n  )\n)\n\n# Read the results provided as command line argument\nopt_parser &lt;- optparse::OptionParser(option_list = option_list)\nopt &lt;- optparse::parse_args(opt_parser)\njsonResults &lt;- opt$data_in\n\n# --------- Interpret the JSON data ---------\n\n# Pull the data itself from the API results\ndf &lt;- fromJSON(jsonResults)\ndf &lt;- df$results$result$formatted[[2]]\n\n# Repair if you have column names on your spreadsheet\ncolnames(df) &lt;- df[1, ] # colnames taken from first row of data\ndf &lt;- df[-1, ] # remove the first row of data (original column names)\ndf &lt;- tibble::as_tibble(df)\n\n# --------- Any analysis you want to do ---------\n# --------- Don't print sensitive data!! --------\n\nprint(mean(df$`How would you rate our platform?`))\n\n# --------- Render web pages from Rmd docs ---------\n\nrmarkdown::render_site(\n  input = \"pages\",\n  envir = new.env(parent = globalenv()) # enable use of 'df' inside the Rmd being rendered\n)"
+  },
+  {
+    "objectID": "index.html#step-4-set-up-gha",
+    "href": "index.html#step-4-set-up-gha",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "Step 4: Set up GHA",
+    "text": "Step 4: Set up GHA\nEdit/Create a workflow that leverages these credentials. You might create something like this file, also shown below. This workflow leverages the existing GHA jroehl/gsheet.action@v2.1.1. It “grabs” the data.\n\nInstead of '1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U', provide the sheet ID you are interested in.\nInstead of \"Sheet1\", provide the correct worksheet name.\nSupply the correct range of cells.\n\nname: Run Google Sheet Analysis\non: workflow_dispatch\n\njobs:\n\n  run-analysis:\n    name: Run Google Sheet Analysis\n    runs-on: ubuntu-latest\n    container:\n      # Use a container that has most dependencies installed.\n      # It doesn't have to be this one\n      image: 'jhudsl/base_ottr:latest'\n\n    steps:\n      # Get files from the repository\n      - name: checkout\n        uses: actions/checkout@v4\n        \n      - name: get data\n        id: 'get_sheet'\n        uses: jroehl/gsheet.action@v2.1.1\n        with:\n          spreadsheetId: '1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U' # Specific Google Sheet URL\n          commands: | # list of commands, specified as a valid JSON string\n            [\n              { \"command\": \"getWorksheet\", \"args\": { \"worksheetTitle\": \"Sheet1\" }},\n              { \"command\": \"getData\", \"args\": { \"range\": \"'Sheet1'!A:B\" } }\n            ]\n        env:\n          GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}\n          GSHEET_PRIVATE_KEY: ${{ secrets.GSHEET_PRIVATE_KEY }}\n        \n      # Run the analysis\n      - name: Run render script\n        env:\n          #  the output of the action above!\n          RESULTS: ${{ steps.get_sheet.outputs.results }}\n        run: |\n          Rscript --vanilla \"R/render.R\" --data_in \"$RESULTS\""
+  },
+  {
+    "objectID": "index.html#step-4-set-up-your-analysis",
+    "href": "index.html#step-4-set-up-your-analysis",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "Step 4: Set up your analysis",
+    "text": "Step 4: Set up your analysis\nYou’ll want to leverage the data inside an R script. You might create something like this file, also shown below.\n\nThe main line that does this is in the workflow above is Rscript --vanilla \"R/render.R\" --data_in \"$RESULTS\"\nUltimately, the contents of your R analysis are up to you!\nBe careful not to print any sensitive data in your workflow!\n\n\ninstall.packages(\"jsonlite\", repos = \"https://cloud.r-project.org\")\n\nlibrary(optparse) # make_option OptionParser parse_args\nlibrary(jsonlite) # fromJSON\n\n# --------- Get the output from GHA ---------\n\n# Look for the data_in argument\noption_list &lt;- list(\n  optparse::make_option(\n    c(\"--data_in\"),\n    type = \"character\",\n    default = NULL,\n    help = \"Sheet Results (json)\",\n  )\n)\n\n# Read the results provided as command line argument\nopt_parser &lt;- optparse::OptionParser(option_list = option_list)\nopt &lt;- optparse::parse_args(opt_parser)\njsonResults &lt;- opt$data_in\n\n# --------- Interpret the JSON data ---------\n\n# Pull the data itself from the API results\ndf &lt;- fromJSON(jsonResults)\ndf &lt;- df$results$result$formatted[[2]]\n\n# Repair if you have column names on your spreadsheet\ncolnames(df) &lt;- df[1, ] # colnames taken from first row of data\ndf &lt;- df[-1, ] # remove the first row of data (original column names)\ndf &lt;- tibble::as_tibble(df)\n\n# --------- Any analysis you want to do ---------\n# --------- Don't print sensitive data!! --------\n\nprint(mean(df$`How would you rate our platform?`))\n\n# --------- Render web pages from Rmd docs ---------\n\nrmarkdown::render_site(\n  input = \"pages\",\n  envir = new.env(parent = globalenv()) # enable use of 'df' inside the Rmd being rendered\n)"
   }
 ]

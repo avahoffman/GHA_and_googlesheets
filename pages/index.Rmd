@@ -1,0 +1,13 @@
+---
+title: "Example document"
+output:
+  html_document
+---
+
+## Example
+
+This is an example document that will be rendered using Google Sheets data. Some rendered code is shown below.
+
+```{r}
+head(df)
+```

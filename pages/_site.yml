@@ -1,0 +1,17 @@
+name: Example Site
+navbar:
+  title: "Example Site"
+  left:
+  - text: ""
+    href: index.html
+    icon: fa-home
+    
+output:
+  html_document:
+    theme: cosmo
+    lib_dir: site_libs
+    self_contained: no
+    highlight: textmate
+    css: styles.css
+    includes:
+       in_header: resources/header.html

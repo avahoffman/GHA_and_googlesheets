@@ -1,5 +1,6 @@
 ---
 title: "GitHub Actions + Google Sheets"
+highlight-style: github
 ---
 
 ```{r, setup, include=FALSE}
@@ -8,7 +9,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-How do you get the R package `googlesheets4` to work inside a non-interactive GitHub Actions environment?
+How do you get access to Google Sheets data in R while inside a non-interactive GitHub Actions environment?
 
 You need to give your workflow permission. Easier said than done!
 
@@ -66,21 +67,25 @@ knitr::include_graphics("img/gha_repo_secret.png")
 
 3. Click on "New repository secret"
 
-4. Fill in the name: `GS_SA_FILENAME`. Type in the name of the key you downloaded exactly. It will end in `.json`. Click "Add secret".
+4. Fill in the name: `GSHEET_CLIENT_EMAIL`. Type in the name of the email generated above. It will end in `iam.gserviceaccount.com`. Click "Add secret".
 
 ```{r}
-knitr::include_graphics("img/gha_new_secret.png")
+knitr::include_graphics("img/gha_new_client_email.png")
 ```
 
-5. Repeat the process. Fill in the name: `GS_SA_KEY`. Type in the contents of the key you downloaded exactly. 
+5. Create another secret. Fill in the name: `GSHEET_PRIVATE_KEY`. 
 
-    - You might have to open the key in a plain text application (e.g., TextEdit, Sublime Text). If you open it in your browser, it might not be formatted correctly.
-    - The key will start with:
+6. Go to your `.json` key you just downloaded. Open it up and locate the field `private_key`. It will look something like this.
 
-        ```
-        {
-          "type": "service_account",`
-        ```
+```{r}
+knitr::include_graphics("img/key_unformatted.png")
+```
+
+7. You'll need to replace all the `\n` with line breaks. You can do this manually or in R using `message()`. Paste this as your secret.
+
+```{r}
+knitr::include_graphics("img/key_formatted.png")
+```
 
 6. Click "Add secret". Your secrets are now ready to use.
 
@@ -88,61 +93,126 @@ knitr::include_graphics("img/gha_new_secret.png")
 knitr::include_graphics("img/gha_the_secrets.png")
 ```
 
-## Step 3: Set up GHA and your analysis
-
-1. Create a GHA workflow that leverages these credentials. You might create something like [this file](https://github.com/avahoffman/GHA_and_googlesheets/blob/main/.github/workflows/run_analysis.yml), also shown below.
-
-    - I created a file that is called by the workflow, `render.R`, to keep things tidy. It looks for a directory called `.secrets` that is created and deleted by the workflow. You can find that file [here](https://github.com/avahoffman/GHA_and_googlesheets/blob/main/R/render.R).
-    - Ultimately, the contents of your R analysis are up to you!
-
-    ```
-    name: Run Google Sheet Analysis
-    
-    on:
-      workflow_dispatch:
-    
-    jobs:
-    
-      run-analysis:
-        name: Run Google Sheet Analysis
-        runs-on: ubuntu-latest
-        container:
-          # Use a container that has tidyverse, googlesheets4, etc. installed.
-          # It doesn't have to be this one
-          image: 'jhudsl/anvil-poll-2024:main'
-    
-        steps:
-          # Get files from the repository
-          - name: checkout
-            uses: actions/checkout@v4
-            
-          # Set up / install jq so that json credentials can be read in
-          - name: Install jq
-            uses: dcarbone/install-jq-action@v2.1.0
-    
-          # Run the analysis
-          - name: Run render script
-            run: |
-              if [ ! -d .secrets ]; then
-                mkdir .secrets
-              fi
-              jq -n '${{ secrets.GS_SA_KEY }}' > .secrets/${{ secrets.GS_SA_FILENAME }}
-              if test -f .secrets/${{ secrets.GS_SA_FILENAME }}; then
-                echo "Key created!"
-              fi
-              Rscript --vanilla "R/render.R"
-              rm -rf .secrets
-    ```
-
-## Step 4: Give the service account permission
+## Step 3: Give the service account permission
 
 1. Share the Google Sheet you'll be pulling from with your service account. Use the email that ends in "iam.gserviceaccount.com"
-
-- <span style="color:red;">Be careful not to print any sensitive data in your workflow!</span>
 
 ```{r}
 knitr::include_graphics("img/share_google_sheet.png")
 ```
+
+2. Note the Sheet ID. This can be found between `/d/` and `/edit?`.
+
+```{r}
+knitr::include_graphics("img/sheetID.png")
+```
+
+## Step 4: Set up GHA
+
+Edit/Create a workflow that leverages these credentials. You might create something like [this file](https://github.com/avahoffman/GHA_and_googlesheets/blob/main/.github/workflows/run_analysis.yml), also shown below. This workflow leverages the existing GHA [`jroehl/gsheet.action@v2.1.1`](https://github.com/marketplace/actions/gsheet-action). It "grabs" the data.
+
+- Instead of `'1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U'`, provide the sheet ID you are interested in.
+- Instead of `"Sheet1"`, provide the correct worksheet name.
+- Supply the correct range of cells.
+
+```{.yaml eval=F, echo=T}
+name: Run Google Sheet Analysis
+on: workflow_dispatch
+
+jobs:
+
+  run-analysis:
+    name: Run Google Sheet Analysis
+    runs-on: ubuntu-latest
+    container:
+      # Use a container that has most dependencies installed.
+      # It doesn't have to be this one
+      image: 'jhudsl/base_ottr:latest'
+
+    steps:
+      # Get files from the repository
+      - name: checkout
+        uses: actions/checkout@v4
+        
+      - name: get data
+        id: 'get_sheet'
+        uses: jroehl/gsheet.action@v2.1.1
+        with:
+          spreadsheetId: '1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U' # Specific Google Sheet URL
+          commands: | # list of commands, specified as a valid JSON string
+            [
+              { "command": "getWorksheet", "args": { "worksheetTitle": "Sheet1" }},
+              { "command": "getData", "args": { "range": "'Sheet1'!A:B" } }
+            ]
+        env:
+          GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
+          GSHEET_PRIVATE_KEY: ${{ secrets.GSHEET_PRIVATE_KEY }}
+        
+      # Run the analysis
+      - name: Run render script
+        env:
+          #  the output of the action above!
+          RESULTS: ${{ steps.get_sheet.outputs.results }}
+        run: |
+          Rscript --vanilla "R/render.R" --data_in "$RESULTS"
+```
+
+## Step 4: Set up your analysis
+
+You'll want to leverage the data inside an R script. You might create something like [this file](https://github.com/avahoffman/GHA_and_googlesheets/blob/main/R/render.R), also shown below.
+
+- The main line that does this is in the workflow above is `Rscript --vanilla "R/render.R" --data_in "$RESULTS"`
+- The script below takes the `$RESULTS` and creates a tibble `df`.
+- Ultimately, the contents of your R analysis are up to you!
+- <span style="color:red;">Be careful not to print any sensitive data in your workflow!</span>
+    
+```{r eval=F, echo=T}
+install.packages("jsonlite", repos = "https://cloud.r-project.org")
+
+library(optparse) # make_option OptionParser parse_args
+library(jsonlite) # fromJSON
+
+# --------- Get the output from GHA ---------
+
+# Look for the data_in argument
+option_list <- list(
+  optparse::make_option(
+    c("--data_in"),
+    type = "character",
+    default = NULL,
+    help = "Sheet Results (json)",
+  )
+)
+
+# Read the results provided as command line argument
+opt_parser <- optparse::OptionParser(option_list = option_list)
+opt <- optparse::parse_args(opt_parser)
+jsonResults <- opt$data_in
+
+# --------- Interpret the JSON data ---------
+
+# Pull the data itself from the API results
+df <- fromJSON(jsonResults)
+df <- df$results$result$formatted[[2]]
+
+# Repair if you have column names on your spreadsheet
+colnames(df) <- df[1, ] # colnames taken from first row of data
+df <- df[-1, ] # remove the first row of data (original column names)
+df <- tibble::as_tibble(df)
+
+# --------- Any analysis you want to do ---------
+# --------- Don't print sensitive data!! --------
+
+print(mean(df$`How would you rate our platform?`))
+
+# --------- Render web pages from Rmd docs ---------
+
+rmarkdown::render_site(
+  input = "pages",
+  envir = new.env(parent = globalenv()) # enable use of 'df' inside the Rmd being rendered
+) 
+```
+    
 
 ## Step 5+: Test the workflow
 
