@@ -203,6 +203,7 @@ df <- tibble::as_tibble(df)
 # --------- Any analysis you want to do ---------
 # --------- Don't print sensitive data!! --------
 
+df$`How would you rate our platform?` <- as.numeric(df$`How would you rate our platform?`)
 print(mean(df$`How would you rate our platform?`))
 
 # --------- Render web pages from Rmd docs ---------
