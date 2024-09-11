@@ -17,77 +17,77 @@ Everything associated with this tutorial can be found at [avahoffman/GHA_and_goo
 
 ## Step 1: Make a service account
 
-1. Go to [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials). 
+1.  Go to <https://console.cloud.google.com/apis/credentials>.
 
-    - If you're using a specific Gmail account to manage Google Cloud, make sure you're logged in.
-    - If your browser doesn't redirect you to something like "https://console.cloud.google.com/apis/credentials?project=my-project", you might need to make a project first. You can make a limited number of projects for free.
+    -   If you're using a specific Gmail account to manage Google Cloud, make sure you're logged in.
+    -   If your browser doesn't redirect you to something like "https://console.cloud.google.com/apis/credentials?project=my-project", you might need to make a project first. You can make a limited number of projects for free.
 
-2. Click on "CREATE CREDENTIALS" and select "Service account".
+2.  Click on "CREATE CREDENTIALS" and select "Service account".
 
-    - A service account is a special kind of account typically used by an application, rather than a person.
-    - **Caution:** Service account keys are a security risk if not managed correctly!
+    -   A service account is a special kind of account typically used by an application, rather than a person.
+    -   **Caution:** Service account keys are a security risk if not managed correctly!
 
 ```{r}
 knitr::include_graphics("img/create_creds.png")
 ```
 
-3. Fill in details. Be specific about the program and use. Click on "CREATE AND CONTINUE".
+3.  Fill in details. Be specific about the program and use. Click on "CREATE AND CONTINUE".
 
 ```{r}
 knitr::include_graphics("img/service_acct_name.png")
 ```
 
-4. Leave "Grant this service account access to project" and "Grant users access to this service account" as is by clicking "CONTINUE" and "DONE"
+4.  Leave "Grant this service account access to project" and "Grant users access to this service account" as is by clicking "CONTINUE" and "DONE"
 
-    - You will be taken back to the credentials page. You'll see your new service account that you created, and an email that looks something like "program-survey-2024@my-project.iam.gserviceaccount.com".
+    -   You will be taken back to the credentials page. You'll see your new service account that you created, and an email that looks something like "program-survey-2024\@my-project.iam.gserviceaccount.com".
 
 ```{r}
 knitr::include_graphics("img/service_acct_done.png")
 ```
 
-5. Click on the service account (something like "program-survey-2024@my-project.iam.gserviceaccount.com").
+5.  Click on the service account (something like "program-survey-2024\@my-project.iam.gserviceaccount.com").
 
-6. Click on "KEYS" > "ADD KEY" > "Create new key".
+6.  Click on "KEYS" \> "ADD KEY" \> "Create new key".
 
 ```{r}
 knitr::include_graphics("img/service_acct_newkey.png")
 ```
 
-7. Select "JSON" and click "CREATE". This stores the key in your downloads. <span style="color:red;">Service account keys could pose a security risk if compromised. Keep it safe!</span>
+7.  Select "JSON" and click "CREATE". This stores the key in your downloads. [Service account keys could pose a security risk if compromised. Keep it safe!]{style="color:red;"}
 
 ## Step 2: Set up the secret on GitHub
 
-1. On GitHub, find or create the repository where you want to run a GitHub Action (GHA). 
+1.  On GitHub, find or create the repository where you want to run a GitHub Action (GHA).
 
-2. Go to "Settings" > "Secrets and variables" > "Actions"
+2.  Go to "Settings" \> "Secrets and variables" \> "Actions"
 
 ```{r}
 knitr::include_graphics("img/gha_repo_secret.png")
 ```
 
-3. Click on "New repository secret"
+3.  Click on "New repository secret"
 
-4. Fill in the name: `GSHEET_CLIENT_EMAIL`. Type in the name of the email generated above. It will end in `iam.gserviceaccount.com`. Click "Add secret".
+4.  Fill in the name: `GSHEET_CLIENT_EMAIL`. Type in the name of the email generated above. It will end in `iam.gserviceaccount.com`. Click "Add secret".
 
 ```{r}
 knitr::include_graphics("img/gha_new_client_email.png")
 ```
 
-5. Create another secret. Fill in the name: `GSHEET_PRIVATE_KEY`. 
+5.  Create another secret. Fill in the name: `GSHEET_PRIVATE_KEY`.
 
-6. Go to your `.json` key you just downloaded. Open it up and locate the field `private_key`. It will look something like this.
+6.  Go to your `.json` key you just downloaded. Open it up and locate the field `private_key`. It will look something like this.
 
 ```{r}
 knitr::include_graphics("img/key_unformatted.png")
 ```
 
-7. You'll need to replace all the `\n` with line breaks. You can do this manually or in R using `message()`. Paste this as your secret.
+7.  You'll need to replace all the `\n` with line breaks. You can do this manually or in R using `message()`. Paste this as your secret.
 
 ```{r}
 knitr::include_graphics("img/key_formatted.png")
 ```
 
-6. Click "Add secret". Your secrets are now ready to use.
+6.  Click "Add secret". Your secrets are now ready to use.
 
 ```{r}
 knitr::include_graphics("img/gha_the_secrets.png")
@@ -95,13 +95,13 @@ knitr::include_graphics("img/gha_the_secrets.png")
 
 ## Step 3: Give the service account permission
 
-1. Share the Google Sheet you'll be pulling from with your service account. Use the email that ends in "iam.gserviceaccount.com"
+1.  Share the Google Sheet you'll be pulling from with your service account. Use the email that ends in "iam.gserviceaccount.com"
 
 ```{r}
 knitr::include_graphics("img/share_google_sheet.png")
 ```
 
-2. Note the Sheet ID. This can be found between `/d/` and `/edit?`.
+2.  Note the Sheet ID. This can be found between `/d/` and `/edit?`.
 
 ```{r}
 knitr::include_graphics("img/sheetID.png")
@@ -111,11 +111,12 @@ knitr::include_graphics("img/sheetID.png")
 
 Edit/Create a workflow that leverages these credentials. You might create something like [this file](https://github.com/avahoffman/GHA_and_googlesheets/blob/main/.github/workflows/run_analysis.yml), also shown below. This workflow leverages the existing GHA [`jroehl/gsheet.action@v2.1.1`](https://github.com/marketplace/actions/gsheet-action). It "grabs" the data.
 
-- Instead of `'1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U'`, provide the sheet ID you are interested in.
-- Instead of `"Sheet1"`, provide the correct worksheet name.
-- Supply the correct range of cells.
+-   Instead of `'1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U'`, provide the sheet ID you are interested in.
+-   Instead of `"Sheet1"`, provide the correct worksheet name.
+-   Supply the correct range of cells.
 
-```{.yaml eval=F, echo=T}
+``` {.yaml eval="F," echo="T"}
+
 name: Run Google Sheet Analysis
 on: workflow_dispatch
 
@@ -127,18 +128,19 @@ jobs:
     container:
       # Use a container that has most dependencies installed.
       # It doesn't have to be this one
-      image: 'jhudsl/base_ottr:latest'
+      image: jhudsl/base_ottr:latest
 
     steps:
       # Get files from the repository
       - name: checkout
         uses: actions/checkout@v4
         
+      # Query Google Sheets API
       - name: get data
-        id: 'get_sheet'
+        id: get_sheet
         uses: jroehl/gsheet.action@v2.1.1
         with:
-          spreadsheetId: '1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U' # Specific Google Sheet URL
+          spreadsheetId: 1QNBCCk4eIsSLw9I_KdNtWiBYEKz-mHSzLVYLYlN6c9U # Specific Google Sheet URL
           commands: | # list of commands, specified as a valid JSON string
             [
               { "command": "getWorksheet", "args": { "worksheetTitle": "Sheet1" }},
@@ -161,11 +163,11 @@ jobs:
 
 You'll want to leverage the data inside an R script. You might create something like [this file](https://github.com/avahoffman/GHA_and_googlesheets/blob/main/R/render.R), also shown below.
 
-- The main line that does this is in the workflow above is `Rscript --vanilla "R/render.R" --data_in "$RESULTS"`
-- The script below takes the `$RESULTS` and creates a tibble `df`.
-- Ultimately, the contents of your R analysis are up to you!
-- <span style="color:red;">Be careful not to print any sensitive data in your workflow!</span>
-    
+-   The main line that does this is in the workflow above is `Rscript --vanilla "R/render.R" --data_in "$RESULTS"`
+-   The script below takes the `$RESULTS` and creates a tibble `df`.
+-   Ultimately, the contents of your R analysis are up to you!
+-   [Be careful not to print any sensitive data in your workflow!]{style="color:red;"}
+
 ```{r eval=F, echo=T}
 install.packages("jsonlite", repos = "https://cloud.r-project.org")
 
@@ -213,17 +215,16 @@ rmarkdown::render_site(
   envir = new.env(parent = globalenv()) # enable use of 'df' inside the Rmd being rendered
 ) 
 ```
-    
 
 ## Step 6+: Test the workflow
 
-1. It's important to check if things are set up correctly. Navigate to your "Actions" tab of your workflow and launch your GHA workflow, if it hasn't launched automatically.
+1.  It's important to check if things are set up correctly. Navigate to your "Actions" tab of your workflow and launch your GHA workflow, if it hasn't launched automatically.
 
 ```{r}
 knitr::include_graphics("img/test_workflow.png")
 ```
 
-2. Click through to the completed workflow. From the output below, we can see the mean I requested in `render.R` was successfully calculated!
+2.  Click through to the completed workflow. From the output below, we can see the mean I requested in `render.R` was successfully calculated!
 
 ```{r}
 knitr::include_graphics("img/click_workflow.png")
