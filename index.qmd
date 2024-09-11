@@ -232,3 +232,11 @@ knitr::include_graphics("img/click_workflow.png")
 ```{r}
 knitr::include_graphics("img/success.png")
 ```
+
+## Common Issues
+
+You might need to enable the Google Sheets API on your Google Cloud Project. If so, you'll get an error that looks similar to the one pictured below. Click through the link provided to enable it.
+
+```{r}
+knitr::include_graphics("img/project_api.png")
+```

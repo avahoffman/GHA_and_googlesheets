@@ -96,5 +96,12 @@
     "title": "GitHub Actions + Google Sheets",
     "section": "Step 6+: Test the workflow",
     "text": "Step 6+: Test the workflow\n\nIt’s important to check if things are set up correctly. Navigate to your “Actions” tab of your workflow and launch your GHA workflow, if it hasn’t launched automatically.\n\n\n\n\n\n\n\n\n\n\n\nClick through to the completed workflow. From the output below, we can see the mean I requested in render.R was successfully calculated!"
+  },
+  {
+    "objectID": "index.html#common-issues",
+    "href": "index.html#common-issues",
+    "title": "GitHub Actions + Google Sheets",
+    "section": "Common Issues",
+    "text": "Common Issues\nYou might need to enable the Google Sheets API on your Google Cloud Project. If so, you’ll get an error that looks similar to the one pictured below. Click through the link provided to enable it."
   }
 ]
